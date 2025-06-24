@@ -31,6 +31,94 @@ interface CenterFeedProps {
 
 const URL_REGEX = /https?:\/\/[^\s/$.?#].[^\s]*/i;
 
+// --- Demo Data ---
+const demoProfiles: Profile[] = [
+    { id: 'demo-user-1', email: 'donor@example.com', username: 'GenerousDonor', role: 'donor', verification_status: 'verified', created_at: new Date(Date.now() - 86400000 * 5).toISOString(), avatar_url: `https://api.dicebear.com/7.x/initials/svg?seed=GenerousDonor&backgroundColor=22c55e&radius=50` },
+    { id: 'demo-user-2', email: 'student@example.com', username: 'EagerStudent', role: 'student', verification_status: 'verified', created_at: new Date(Date.now() - 86400000 * 3).toISOString(), avatar_url: `https://api.dicebear.com/7.x/initials/svg?seed=EagerStudent&backgroundColor=3b82f6&radius=50` },
+    { id: 'demo-user-3', email: 'mentor@example.com', username: 'WiseMentor', role: 'donor', verification_status: 'verified', created_at: new Date(Date.now() - 86400000 * 10).toISOString(), avatar_url: `https://api.dicebear.com/7.x/initials/svg?seed=WiseMentor&backgroundColor=8b5cf6&radius=50` },
+];
+
+const demoPosts: Post[] = [
+    {
+        id: 'demo-post-1',
+        user_id: 'demo-user-1',
+        post_type: 'donation',
+        resource_title: 'Complete Set of Physics Textbooks for College',
+        content: 'I have a full set of Halliday, Resnick, and Walker textbooks that I\'d love to pass on to a student in need.',
+        resource_category: 'books',
+        resource_contact: 'Contact via platform message',
+        created_at: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
+        profiles: demoProfiles[0],
+        likes: [],
+        comments: [],
+    },
+    {
+        id: 'demo-post-2',
+        user_id: 'demo-user-2',
+        post_type: 'wisdom',
+        content: 'Just discovered a great free resource for learning React! The new docs are amazing for beginners. Highly recommend checking them out if you are into web development. #react #webdev',
+        link_url: 'https://react.dev',
+        link_title: 'React - A JavaScript library for building user interfaces',
+        link_description: 'The library for web and native user interfaces. Build user interfaces out of individual pieces called components written in JavaScript.',
+        link_image: 'https://react.dev/images/og-home.png',
+        created_at: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
+        profiles: demoProfiles[1],
+        likes: [],
+        comments: [],
+    },
+    {
+        id: 'demo-post-3',
+        user_id: 'demo-user-3',
+        post_type: 'wisdom',
+        content: "A key piece of advice for students: Don't be afraid to ask for help. Whether it's from professors, peers, or mentors, seeking guidance is a sign of strength, not weakness. Your network is your net worth! #StudentSuccess #Mentorship",
+        created_at: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
+        profiles: demoProfiles[2],
+        likes: [],
+        comments: [],
+    },
+    {
+        id: 'demo-post-4',
+        user_id: 'demo-user-1',
+        post_type: 'donation',
+        image_url: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?q=80&w=1926&auto=format&fit=crop',
+        resource_title: 'Gently Used Laptop (Dell XPS 13)',
+        content: 'This laptop served me well through college. It\'s still in great condition and perfect for coding and taking notes. Hope it can help someone out!',
+        resource_category: 'electronics',
+        resource_contact: 'Please message me to claim.',
+        created_at: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString(),
+        profiles: demoProfiles[0],
+        likes: [],
+        comments: [],
+    },
+    {
+        id: 'demo-post-5',
+        user_id: 'demo-user-2',
+        post_type: 'seeking',
+        resource_title: 'Looking for a mentor in the data science field.',
+        content: 'I am a final year computer science student and I am very interested in data science. I am looking for a mentor who can guide me on projects and career path. Any help would be appreciated!',
+        resource_category: 'courses',
+        created_at: new Date(Date.now() - 1000 * 60 * 60 * 72).toISOString(),
+        profiles: demoProfiles[1],
+        likes: [],
+        comments: [],
+    },
+     {
+        id: 'demo-post-6',
+        user_id: 'demo-user-3',
+        post_type: 'donation',
+        resource_title: 'Free 1-hour Mentorship Session on Career Building',
+        content: 'I\'m offering a free 1-hour mentorship session for students on how to build their resume, prepare for interviews, and navigate the job market. Limited slots available!',
+        resource_category: 'courses',
+        resource_contact: 'Send me a message with your resume to apply.',
+        created_at: new Date(Date.now() - 1000 * 60 * 60 * 96).toISOString(),
+        profiles: demoProfiles[2],
+        likes: [],
+        comments: [],
+    }
+];
+// --- End Demo Data ---
+
+
 const fetchRichLinkPreview = async (url: string) => {
   try {
     await new Promise(resolve => setTimeout(resolve, 500));
@@ -86,6 +174,8 @@ export default function CenterFeed({ user, profile, searchQuery }: CenterFeedPro
 
   const router = useRouter();
 
+  const isDemoPost = (post: Post) => post.id.startsWith('demo-');
+
   useEffect(() => {
     const timer = setTimeout(async () => {
       const foundUrl = content.match(URL_REGEX);
@@ -114,10 +204,19 @@ export default function CenterFeed({ user, profile, searchQuery }: CenterFeedPro
   }, []);
 
   const addPostToState = useCallback((newPost: Post) => {
-    setPosts(prevPosts => [newPost, ...prevPosts]);
+    setPosts(prevPosts => [newPost, ...prevPosts.filter(p => !isDemoPost(p))]);
   }, []);
 
   const fetchPosts = useCallback(async () => {
+     // If user is not logged in, show demo posts and stop.
+     if (!user) {
+        setPosts(demoPosts);
+        setLoading(false);
+        return;
+    }
+    
+    // If user is logged in, fetch real posts.
+    setLoading(true);
     try {
       const { data, error } = await supabase
         .from('posts')
@@ -125,14 +224,18 @@ export default function CenterFeed({ user, profile, searchQuery }: CenterFeedPro
         .order('created_at', { ascending: false });
 
       if (error) throw error;
+      
+      // For a logged in user, if the DB is empty, show an empty feed not demo posts.
       setPosts(data || []);
+
     } catch (error) {
       console.error('Error fetching posts:', error);
       toast.error("Could not fetch posts.");
+      setPosts([]); // Show empty feed on error for logged-in users.
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [user]);
 
   const filteredAndSortedPosts = useMemo(() => {
     let result = posts;
@@ -167,34 +270,31 @@ export default function CenterFeed({ user, profile, searchQuery }: CenterFeedPro
   }, [posts, searchQuery, filter, sortBy]);
 
   useEffect(() => {
-    if (!isSupabaseConnected) {
-        setPosts([]);
-        setLoading(false);
-        return;
-    }
     fetchPosts();
 
-    const postsChannel = supabase
-      .channel('posts_feed')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'posts' }, (payload: { new: Post }) => {
-        const newPost = payload.new;
-        addPostToState(newPost);
-      })
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'posts' }, (payload: { new: Post }) => {
-        const updatedPost = payload.new;
-        updatePostInState(updatedPost.id, updatedPost);
-      })
-      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'posts' }, (payload: { old: { id: string } }) => {
-        removePostFromState(payload.old.id);
-      })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'likes' }, fetchPosts)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'comments' }, fetchPosts)
-      .subscribe();
+    if (user && isSupabaseConnected) {
+        const postsChannel = supabase
+          .channel('posts_feed')
+          .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'posts' }, (payload: { new: Post }) => {
+            const newPost = payload.new;
+            addPostToState(newPost);
+          })
+          .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'posts' }, (payload: { new: Post }) => {
+            const updatedPost = payload.new;
+            updatePostInState(updatedPost.id, updatedPost);
+          })
+          .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'posts' }, (payload: { old: { id: string } }) => {
+            removePostFromState(payload.old.id);
+          })
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'likes' }, fetchPosts)
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'comments' }, fetchPosts)
+          .subscribe();
 
-    return () => {
-      supabase.removeChannel(postsChannel);
-    };
-  }, [fetchPosts, addPostToState, updatePostInState, removePostFromState]);
+        return () => {
+          supabase.removeChannel(postsChannel);
+        };
+    }
+  }, [fetchPosts, user, addPostToState, updatePostInState, removePostFromState]);
 
   const handlePostSubmit = async () => {
     if (!user || !profile || submitting) return;
@@ -254,6 +354,10 @@ export default function CenterFeed({ user, profile, searchQuery }: CenterFeedPro
   };
 
   const handleLikeToggle = async (post: Post) => {
+    if(isDemoPost(post)) {
+        toast.info("Liking is disabled for demo posts. Sign up to interact!");
+        return;
+    }
     if (!user || !profile) {
       toast.info("Please sign in to like posts.");
       return;
@@ -281,6 +385,10 @@ export default function CenterFeed({ user, profile, searchQuery }: CenterFeedPro
   };
 
   const handleAddComment = async (postId: string) => {
+    if(isDemoPost({id: postId} as Post)) {
+      toast.info("Commenting is disabled for demo posts. Sign up to interact!");
+      return;
+    }
     const commentText = newComments[postId]?.trim();
     if (!user || !commentText || !profile) {
       toast.info("Please sign in and write a comment.");
@@ -359,6 +467,10 @@ export default function CenterFeed({ user, profile, searchQuery }: CenterFeedPro
   };
 
   const handleReportPost = (postId: string) => {
+    if(isDemoPost({id: postId} as Post)) {
+      toast.info("This is a demo post.");
+      return;
+    }
     const subject = encodeURIComponent(`Report on Post ID: ${postId}`);
     const body = encodeURIComponent(`I would like to report Post ID: ${postId} for the following reason:\n\n[Please describe the issue here]\n\n`);
     window.location.href = `mailto:info@edubridgepeople.com?subject=${subject}&body=${body}`;
@@ -381,6 +493,10 @@ export default function CenterFeed({ user, profile, searchQuery }: CenterFeedPro
   };
 
   const handleEditClick = (post: Post) => {
+    if(isDemoPost(post)) {
+        toast.info("Demo posts cannot be edited.");
+        return;
+    }
     setEditingPost(post);
     setEditedContent(post.content || '');
     const foundUrl = post.content?.match(URL_REGEX);
@@ -431,6 +547,10 @@ export default function CenterFeed({ user, profile, searchQuery }: CenterFeedPro
   const handleCommentChange = (postId: string, text: string) => setNewComments(prev => ({ ...prev, [postId]: text }));
   
   const handleClaimResourceClick = (post: Post) => {
+      if(isDemoPost(post)) {
+        toast.info("This is a demo post. Please sign up to interact!");
+        return;
+      }
       if (!user) {
           toast.error('You must be signed in to claim resources.');
           return;
@@ -448,6 +568,7 @@ export default function CenterFeed({ user, profile, searchQuery }: CenterFeedPro
   };
 
   const isClaimButtonDisabled = (currentPost: Post) => {
+    if (isDemoPost(currentPost)) return false; // Let the click handler show the toast
     if (!user) return true;
     if (profile?.role !== 'student') return true;
     if (profile.verification_status !== 'verified') return true;
@@ -456,6 +577,7 @@ export default function CenterFeed({ user, profile, searchQuery }: CenterFeedPro
   };
 
   const claimButtonTooltip = (currentPost: Post) => {
+    if (isDemoPost(currentPost)) return "Sign up or log in to interact with posts";
     if (!user) return "Sign in to claim resources";
     if (profile?.role !== 'student') return "Only students can claim resources";
     if (profile.verification_status !== 'verified') return "Verify your student profile to claim resources";
@@ -590,11 +712,11 @@ export default function CenterFeed({ user, profile, searchQuery }: CenterFeedPro
                               <DropdownMenu>
                                   <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8 -mr-2"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
                                   <DropdownMenuContent align="end">
-                                      {user?.id === post.user_id ? (
+                                      {user?.id === post.user_id && !isDemoPost(post) ? (
                                           <><DropdownMenuItem onClick={() => handleEditClick(post)}><Edit className="mr-2 h-4 w-4" />Edit</DropdownMenuItem><DropdownMenuItem onClick={() => setPostToDelete(post)} className="text-red-600 focus:text-red-500"><Trash2 className="mr-2 h-4 w-4" />Delete</DropdownMenuItem></>
                                       ) : (
                                         <>
-                                            <DropdownMenuItem onClick={() => router.push(`/?page=messages&recipient=${post.profiles?.id}`)}><MessageCircle className="mr-2 h-4 w-4" />Message</DropdownMenuItem>
+                                            <DropdownMenuItem onClick={() => router.push(`/?page=messages&recipient=${post.profiles?.id}`)} disabled={isDemoPost(post)}><MessageCircle className="mr-2 h-4 w-4" />Message</DropdownMenuItem>
                                             <DropdownMenuItem onClick={() => handleReportPost(post.id)}><ShieldAlert className="mr-2 h-4 w-4" />Report</DropdownMenuItem>
                                         </>
                                       )}
@@ -691,7 +813,7 @@ export default function CenterFeed({ user, profile, searchQuery }: CenterFeedPro
                                 </div>
                             )}
                             <div className="flex items-center justify-between mt-4 text-gray-500 border-t pt-3 border-gray-100">
-                                <Button variant="ghost" size="sm" onClick={() => handleLikeToggle(post)} disabled={!user} className="hover:bg-red-50 hover:text-red-600"><Heart className={`w-5 h-5 mr-1.5 ${post.likes?.some(l => l.user_id === user?.id) ? 'text-red-500 fill-current' : ''}`} />{post.likes?.length || 0}</Button>
+                                <Button variant="ghost" size="sm" onClick={() => handleLikeToggle(post)} className="hover:bg-red-50 hover:text-red-600"><Heart className={`w-5 h-5 mr-1.5 ${post.likes?.some(l => l.user_id === user?.id) ? 'text-red-500 fill-current' : ''}`} />{post.likes?.length || 0}</Button>
                                 <Button variant="ghost" size="sm" onClick={() => toggleComments(post.id)} className="hover:bg-blue-50 hover:text-blue-600"><MessageCircle className="w-5 h-5 mr-1.5" />{post.comments?.length || 0}</Button>
                                 <DropdownMenu>
                                   <DropdownMenuTrigger asChild>
@@ -714,8 +836,9 @@ export default function CenterFeed({ user, profile, searchQuery }: CenterFeedPro
                                           onChange={e => handleCommentChange(post.id, e.target.value)}
                                           onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleAddComment(post.id); } }}
                                           className="flex-1 rounded-full px-4 py-2 border-gray-300 focus:border-blue-500"
+                                          disabled={isDemoPost(post)}
                                         />
-                                        <Button onClick={() => handleAddComment(post.id)} className="rounded-full h-10 w-10 p-0" disabled={!newComments[post.id]?.trim()}>
+                                        <Button onClick={() => handleAddComment(post.id)} className="rounded-full h-10 w-10 p-0" disabled={!newComments[post.id]?.trim() || isDemoPost(post)}>
                                           <Send className="w-4 h-4" />
                                         </Button>
                                       </div>
