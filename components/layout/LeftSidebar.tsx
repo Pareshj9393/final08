@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, Dispatch, SetStateAction } from 'react';
 import { User } from '@supabase/supabase-js';
 import { Profile } from '../../lib/supabase'; // Explicit relative path
 import { Button } from '../ui/button'; // Explicit relative path
@@ -20,9 +20,10 @@ interface LeftSidebarProps {
   user: User | null;
   profile: Profile | null;
   onAuthClick: () => void;
+  onSearch: Dispatch<SetStateAction<string>>;
 }
 
-export default function LeftSidebar({ user, profile, onAuthClick }: LeftSidebarProps) {
+export default function LeftSidebar({ user, profile, onAuthClick, onSearch }: LeftSidebarProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const currentPage = searchParams.get('page') || 'feed';
