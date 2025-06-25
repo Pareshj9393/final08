@@ -1,6 +1,6 @@
 // components/pages/NotificationsPage.tsx
 'use client';
-
+import { toast } from 'sonner';
 import { useState, useEffect, useCallback } from 'react';
 import { User } from '@supabase/supabase-js';
 import { Notification, supabase } from '@/lib/supabase';
