@@ -35,7 +35,7 @@ export default function MessagesPage({ user, profile }: MessagesPageProps) {
 
   useEffect(scrollToBottom, [messages]);
 
-  const fetchConversations = useCallback(async () => {
+  const fetchConversations = useCallback(async (): Promise<Profile[]> => {
     if (!user) return [];
     setLoadingConvos(true);
     try {
@@ -123,7 +123,7 @@ export default function MessagesPage({ user, profile }: MessagesPageProps) {
         const convos = await fetchConversations();
         const recipientId = searchParams.get('recipient');
         // If a recipient is in the URL but not in our current conversation list
-        if (recipientId && !convos.some(c => c.id === recipientId)) {
+        if (recipientId && !convos.some((c: Profile) => c.id === recipientId)) {
             const { data: newProfile, error } = await supabase.from('profiles').select('*').eq('id', recipientId).single();
             if (error) {
                 toast.error("User not found.");
