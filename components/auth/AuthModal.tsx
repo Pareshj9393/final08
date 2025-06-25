@@ -9,7 +9,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { signUp, signIn, resendVerificationEmail, signInWithGoogle } from '@/lib/auth';
 import { toast } from 'sonner';
-import { GraduationCap, Heart, Mail, Chrome, Loader2 } from 'lucide-react';
+import { GraduationCap, Heart, Mail, Loader2 } from 'lucide-react';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -166,7 +166,7 @@ export function AuthModal({ isOpen, onClose, onSuccess, initialMode = 'signup' }
         <ScrollArea className="max-h-[70vh] p-1">
             <div className="p-6 space-y-6">
                 <Button variant="outline" className="w-full text-lg py-6" onClick={handleGoogleSignIn} disabled={loading}>
-                  <Chrome className="w-5 h-5 mr-3" />
+                  <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google logo" className="w-5 h-5 mr-3" />
                   {isSignUp ? 'Sign up with Google' : 'Sign in with Google'}
                 </Button>
                 <div className="relative">
