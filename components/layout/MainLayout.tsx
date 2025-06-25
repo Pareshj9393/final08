@@ -58,7 +58,7 @@ export default function MainLayout() {
       setLoading(false);
     };
 
-    supabase.auth.getSession().then(({ data: { session } }) => checkSession(session));
+    supabase.auth.getSession().then(({ data: { session } }: { data: { session: Session | null } }) => checkSession(session));
     const { data: authListener } = supabase.auth.onAuthStateChange((_event: AuthChangeEvent, session: Session | null) => checkSession(session));
     
     if (currentPage === 'feed' && !sessionStorage.getItem('hackathonPopupShown')) {
